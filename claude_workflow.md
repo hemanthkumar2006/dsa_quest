@@ -157,7 +157,7 @@ This phase is content-limited, not code-limited — most of the time is populati
 
 | Day | Date | What actually got done | Notes / blockers |
 |---|---|---|---|
-| 1 | | | |
+| 1 | 2026-07-11 | Vite+React+TS frontend and Node/Express+TS backend scaffolded; `/health` route verified live in a browser (screenshot, no console errors); Postgres `docker-compose.yml` written but not yet run | Docker Desktop not installed on this machine — user installing it; DB connection (`/health/db`) still unverified until then |
 | 2 | | | |
 | 3 | | | |
 | 4 | | | |
