@@ -158,7 +158,7 @@ This phase is content-limited, not code-limited — most of the time is populati
 | Day | Date | What actually got done | Notes / blockers |
 |---|---|---|---|
 | 1 | 2026-07-11 | Vite+React+TS frontend and Node/Express+TS backend scaffolded; `/health` verified live in a browser (screenshot, no console errors); Postgres running via Docker Compose, `/health/db` confirmed `{"status":"ok"}` against the real container | Phase 0 Day 1 fully done. Docker Desktop had to be installed and manually started mid-session — daemon isn't auto-started on boot on this machine, worth remembering for future days |
-| 2 | | | |
+| 2 | 2026-07-11 | 3 sample Array Coast problems added as static JSON (Section 7.2 schema + a `statement` field, since the spec schema has no statement/description field); region list → level list → problem detail pages built with React Router and verified click-through in a real browser (screenshots, no console errors) | Extended Section 7.2's schema with a `statement` field (not in the spec) and added react-router-dom (not in Section 13's stack) — both confirmed with the user first rather than guessed |
 | 3 | | | |
 | 4 | | | |
 | 5 | | | |
