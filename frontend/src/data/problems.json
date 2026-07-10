@@ -1,0 +1,62 @@
+[
+  {
+    "id": "arr-001",
+    "title": "Maximum Subarray",
+    "region": "array-coast",
+    "primary_pattern": "prefix-sum",
+    "secondary_patterns": [],
+    "difficulty": "easy",
+    "source_sheet": "neetcode-150",
+    "source_url": "https://leetcode.com/problems/maximum-subarray/",
+    "level_index": 1,
+    "is_boss": false,
+    "companies_tags": ["general"],
+    "statement": "Given an integer array nums, find the contiguous subarray (containing at least one number) which has the largest sum, and return its sum.",
+    "hints": [
+      { "cost": 5, "text": "Track a running sum as you scan the array." },
+      { "cost": 10, "text": "If the running sum ever drops below 0, it can only hurt future sums — reset it to 0." }
+    ],
+    "srs_interval_days": [1, 3, 7, 21],
+    "estimated_time_minutes": 15
+  },
+  {
+    "id": "arr-002",
+    "title": "Two Sum",
+    "region": "array-coast",
+    "primary_pattern": "hashmap-lookup",
+    "secondary_patterns": ["two-pointers"],
+    "difficulty": "easy",
+    "source_sheet": "neetcode-150",
+    "source_url": "https://leetcode.com/problems/two-sum/",
+    "level_index": 2,
+    "is_boss": false,
+    "companies_tags": ["general"],
+    "statement": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume each input has exactly one solution, and you may not use the same element twice.",
+    "hints": [
+      { "cost": 5, "text": "What if you stored each number's index as you scan?" },
+      { "cost": 10, "text": "Try a hashmap of value -> index, checking target - current for each element." }
+    ],
+    "srs_interval_days": [1, 3, 7, 21],
+    "estimated_time_minutes": 15
+  },
+  {
+    "id": "arr-003",
+    "title": "Product of Array Except Self",
+    "region": "array-coast",
+    "primary_pattern": "prefix-sum",
+    "secondary_patterns": [],
+    "difficulty": "medium",
+    "source_sheet": "neetcode-150",
+    "source_url": "https://leetcode.com/problems/product-of-array-except-self/",
+    "level_index": 3,
+    "is_boss": false,
+    "companies_tags": ["general"],
+    "statement": "Given an integer array nums, return an array answer such that answer[i] is equal to the product of all the elements of nums except nums[i], without using the division operation.",
+    "hints": [
+      { "cost": 5, "text": "Try computing a prefix product array and a suffix product array separately." },
+      { "cost": 10, "text": "answer[i] = (product of everything left of i) * (product of everything right of i)." }
+    ],
+    "srs_interval_days": [1, 3, 7, 21],
+    "estimated_time_minutes": 20
+  }
+]

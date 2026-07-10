@@ -1,0 +1,14 @@
+[
+  { "id": "array-coast", "order": 1, "name": "Array Coast", "pattern": "Arrays / prefix sums", "available": true },
+  { "id": "two-pointer-straits", "order": 2, "name": "Two-Pointer Straits", "pattern": "Two pointers", "available": false },
+  { "id": "sliding-window-valley", "order": 3, "name": "Sliding Window Valley", "pattern": "Sliding window", "available": false },
+  { "id": "stack-spire", "order": 4, "name": "Stack Spire", "pattern": "Stacks / monotonic stack", "available": false },
+  { "id": "binary-search-peaks", "order": 5, "name": "Binary Search Peaks", "pattern": "Binary search", "available": false },
+  { "id": "linked-list-labyrinth", "order": 6, "name": "Linked List Labyrinth", "pattern": "Linked lists", "available": false },
+  { "id": "tree-territory", "order": 7, "name": "Tree Territory", "pattern": "Trees / BST", "available": false },
+  { "id": "heap-highlands", "order": 8, "name": "Heap Highlands", "pattern": "Heaps / priority queues", "available": false },
+  { "id": "backtracking-badlands", "order": 9, "name": "Backtracking Badlands", "pattern": "Backtracking", "available": false },
+  { "id": "graph-galaxy", "order": 10, "name": "Graph Galaxy", "pattern": "Graph traversal (BFS/DFS), disjoint set union", "available": false },
+  { "id": "greedy-grasslands", "order": 11, "name": "Greedy Grasslands", "pattern": "Greedy algorithms", "available": false },
+  { "id": "dp-dungeon", "order": 12, "name": "DP Dungeon", "pattern": "Dynamic programming", "available": false }
+]
