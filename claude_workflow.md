@@ -157,7 +157,7 @@ This phase is content-limited, not code-limited — most of the time is populati
 
 | Day | Date | What actually got done | Notes / blockers |
 |---|---|---|---|
-| 1 | 2026-07-11 | Vite+React+TS frontend and Node/Express+TS backend scaffolded; `/health` route verified live in a browser (screenshot, no console errors); Postgres `docker-compose.yml` written but not yet run | Docker Desktop not installed on this machine — user installing it; DB connection (`/health/db`) still unverified until then |
+| 1 | 2026-07-11 | Vite+React+TS frontend and Node/Express+TS backend scaffolded; `/health` verified live in a browser (screenshot, no console errors); Postgres running via Docker Compose, `/health/db` confirmed `{"status":"ok"}` against the real container | Phase 0 Day 1 fully done. Docker Desktop had to be installed and manually started mid-session — daemon isn't auto-started on boot on this machine, worth remembering for future days |
 | 2 | | | |
 | 3 | | | |
 | 4 | | | |
