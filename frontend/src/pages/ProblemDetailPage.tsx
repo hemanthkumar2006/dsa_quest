@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import problems from "../data/problems.json";
 import type { Problem } from "../types";
+import CodeSubmitPanel from "../components/CodeSubmitPanel";
 
 function ProblemDetailPage() {
   const { regionId, problemId } = useParams<{
@@ -33,6 +34,7 @@ function ProblemDetailPage() {
           View original on {problem.source_sheet}
         </a>
       </p>
+      <CodeSubmitPanel />
     </main>
   );
 }
