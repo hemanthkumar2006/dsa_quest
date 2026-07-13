@@ -1,5 +1,8 @@
 import { useState } from "react";
 import Editor from "@monaco-editor/react";
+import type { Problem } from "../types";
+
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 const LANGUAGES = [
   { id: "javascript", label: "JavaScript" },
@@ -8,25 +11,75 @@ const LANGUAGES = [
   { id: "java", label: "Java" },
 ] as const;
 
-const STARTER_CODE: Record<string, string> = {
+const DEFAULT_STARTER_CODE: Record<string, string> = {
   javascript: "function solve() {\n  \n}\n",
   python: "def solve():\n    pass\n",
   cpp: "#include <bits/stdc++.h>\nusing namespace std;\n\nvoid solve() {\n\n}\n",
   java: "class Solution {\n    void solve() {\n\n    }\n}\n",
 };
 
-function CodeSubmitPanel() {
+interface TestResult {
+  passed: boolean;
+  status: string;
+  stdout: string | null;
+  stderr: string | null;
+  compile_output: string | null;
+}
+
+interface SubmitResponse {
+  overall: "pass" | "fail";
+  results: TestResult[];
+}
+
+interface CodeSubmitPanelProps {
+  problem: Problem;
+}
+
+function CodeSubmitPanel({ problem }: CodeSubmitPanelProps) {
+  const starterFor = (lang: string) =>
+    problem.starter_code?.[lang] ?? DEFAULT_STARTER_CODE[lang];
+
   const [language, setLanguage] = useState<string>("javascript");
-  const [code, setCode] = useState<string>(STARTER_CODE.javascript);
+  const [code, setCode] = useState<string>(starterFor("javascript"));
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState<SubmitResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleLanguageChange = (newLanguage: string) => {
     setLanguage(newLanguage);
-    setCode(STARTER_CODE[newLanguage]);
+    setCode(starterFor(newLanguage));
+    setResult(null);
+    setError(null);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     console.log("Submitted code:", code);
     console.log("Selected language:", language);
+
+    if (!problem.gradable) {
+      return;
+    }
+
+    setSubmitting(true);
+    setResult(null);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/submit`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ problemId: problem.id, language, code }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Submission failed");
+      } else {
+        setResult(data);
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -49,9 +102,26 @@ function CodeSubmitPanel() {
         value={code}
         onChange={(value) => setCode(value ?? "")}
       />
-      <button type="button" onClick={handleSubmit}>
-        Submit
+      <button type="button" onClick={handleSubmit} disabled={submitting}>
+        {submitting ? "Grading..." : "Submit"}
       </button>
+
+      {error && <p data-testid="submit-error">Error: {error}</p>}
+
+      {result && (
+        <div data-testid="submit-result">
+          <p>
+            Result: <strong>{result.overall}</strong>
+          </p>
+          <ol>
+            {result.results.map((r, i) => (
+              <li key={i}>
+                Test {i + 1}: {r.passed ? "passed" : "failed"} ({r.status})
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
     </div>
   );
 }

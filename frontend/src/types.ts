@@ -27,4 +27,8 @@ export interface Problem {
   hints: Hint[];
   srs_interval_days: number[];
   estimated_time_minutes: number;
+  gradable?: boolean;
+  sample_input?: string;
+  sample_output?: string;
+  starter_code?: Record<string, string>;
 }

@@ -28,13 +28,20 @@ function ProblemDetailPage() {
       <p>
         Difficulty: {problem.difficulty} · Pattern: {problem.primary_pattern}
       </p>
-      <p>{problem.statement}</p>
+      <p style={{ whiteSpace: "pre-wrap" }}>{problem.statement}</p>
+      {problem.sample_input && problem.sample_output && (
+        <div>
+          <p>Example</p>
+          <pre>Input:{"\n"}{problem.sample_input}</pre>
+          <pre>Output:{"\n"}{problem.sample_output}</pre>
+        </div>
+      )}
       <p>
         <a href={problem.source_url} target="_blank" rel="noreferrer">
           View original on {problem.source_sheet}
         </a>
       </p>
-      <CodeSubmitPanel />
+      <CodeSubmitPanel problem={problem} />
     </main>
   );
 }

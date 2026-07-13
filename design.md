@@ -206,11 +206,11 @@ A lightweight mobile companion (React Native/Flutter) for viewing the pattern gr
 | Realtime (duels, ghost racing, spectating) | Socket.IO or raw WebSockets | Required for live duels and shared world-boss state |
 | Database | PostgreSQL | Relational fit for users, problems, attempts, regions, guilds |
 | Caching / leaderboards / live state | Redis | Fast reads/writes for ranked ladder, live duel state, streak counters |
-| Code execution / judge engine | Judge0 (open-source, self-hostable) | Don't hand-build a sandbox for untrusted code execution — Judge0 already handles multi-language execution safely |
+| Code execution / judge engine | Piston (open-source, self-hostable) | Originally planned as Judge0, but Judge0 1.13.0's bundled `isolate` sandbox requires legacy cgroup v1 and fails outright on this machine's cgroup v2-only kernel (confirmed via upstream Judge0 issue #543, open, unresolved as of this writing). Piston is built for cgroup v2, self-hosts the same way (Docker), and is free with no API key — same architecture decision (self-hosted, no hand-built sandbox for untrusted code), different engine |
 | Auth | Clerk or Supabase Auth (or hand-rolled JWT) | Don't hand-roll auth security from scratch for a portfolio project |
 | Hosting | Vercel (frontend) + Railway/Render/Fly.io (backend, Postgres, Redis) | Generous free tiers, well suited to a student project |
 
-**Highest-risk component:** the judge engine. Safely executing untrusted user code is genuinely hard to get right from scratch — use Judge0 for v1 rather than building a custom sandbox, and swap it out later only if needed.
+**Highest-risk component:** the judge engine. Safely executing untrusted user code is genuinely hard to get right from scratch — self-host an existing sandboxed judge engine (Piston) rather than building a custom sandbox, and swap it out later only if needed.
 
 **Why this stack fits internship goals:** a real-time multiplayer system with a sandboxed code execution engine demonstrates systems thinking that's uncommon in student portfolios, and pairs naturally with the Unity pipeline — client-server design, WebSocket real-time systems, and 3D/graphics work together read as "can ship non-trivial systems," which is exactly what companies like Unity, Meshy, and Luma AI are screening for.
 
@@ -243,7 +243,7 @@ A lightweight mobile companion (React Native/Flutter) for viewing the pattern gr
         └─────────────────────┘             └─────────────────────┘
 
                   ┌─────────────────────────────┐
-                  │   Judge0 (self-hosted)         │
+                  │   Piston (self-hosted)         │
                   │   sandboxed multi-language      │
                   │   code execution + grading       │
                   └─────────────────────────────┘
@@ -257,7 +257,7 @@ A lightweight mobile companion (React Native/Flutter) for viewing the pattern gr
 **Phase 0 — Prototype (2–4 weeks)**
 - One region (Array Coast), ~10 levels + 1 boss fight.
 - Static problem set (JSON files, no DB yet) is fine to start.
-- Monaco editor + Judge0 integration for submit/grade.
+- Monaco editor + Piston integration for submit/grade (see Section 13 note — swapped from originally-planned Judge0 due to a cgroup v2 host incompatibility).
 - Basic auth, basic daily streak (no freezes yet).
 - No multiplayer yet — validate the core solve → learn pattern → streak loop first.
 
@@ -283,6 +283,6 @@ A lightweight mobile companion (React Native/Flutter) for viewing the pattern gr
 
 ## 16. Open Risks to Track
 
-- Judge0 self-hosting and sandbox security — budget real time for this, it's the technical core.
+- Judge engine self-hosting and sandbox security — budget real time for this, it's the technical core. (Originally Judge0; switched to Piston on Day 4 after Judge0 1.13.0 proved incompatible with this dev machine's cgroup v2-only kernel — see Section 13.)
 - Realtime scaling for duels/world boss if usage grows beyond a demo audience.
 - Content licensing/attribution when pulling problems from Striver/NeetCode/RisingBrain — keep `source_url` populated (Section 7.2) and link back rather than mirroring problem text where avoidable.
