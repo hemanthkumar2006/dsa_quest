@@ -16,6 +16,9 @@ function RegionListPage() {
       <SignedIn>
         <UserButton />
         <StreakBadge />
+        <p>
+          <Link to="/grimoire">Pattern Grimoire</Link>
+        </p>
       </SignedIn>
       <ul>
         {list.map((region) => (

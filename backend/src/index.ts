@@ -7,6 +7,7 @@ import { runOnPiston } from "./piston";
 import { PISTON_LANGUAGE_VERSIONS } from "./languages";
 import { recordSolve, getStreak } from "./streak";
 import { getProblemsByRegion, getProblemById } from "./problems";
+import { recordGrimoireEntry, getGrimoire } from "./grimoire";
 
 const app = express();
 const port = process.env.PORT ? Number(process.env.PORT) : 4000;
@@ -94,11 +95,14 @@ app.post("/api/submit", async (req, res) => {
 
     const { userId } = getAuth(req);
     let streak: Awaited<ReturnType<typeof recordSolve>> | null = null;
+    let grimoire: { pattern: string; isNew: boolean } | null = null;
     if (allPassed && userId) {
       streak = await recordSolve(userId, problemId);
+      const { isNew } = await recordGrimoireEntry(userId, problem.primary_pattern, problemId);
+      grimoire = { pattern: problem.primary_pattern, isNew };
     }
 
-    res.json({ overall: allPassed ? "pass" : "fail", results, streak });
+    res.json({ overall: allPassed ? "pass" : "fail", results, streak, grimoire });
   } catch (err) {
     res.status(502).json({ error: (err as Error).message });
   }
@@ -112,6 +116,16 @@ app.get("/api/streak", async (req, res) => {
   }
   const streak = await getStreak(userId);
   res.json(streak);
+});
+
+app.get("/api/grimoire", async (req, res) => {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+  const entries = await getGrimoire(userId);
+  res.json(entries);
 });
 
 app.listen(port, () => {

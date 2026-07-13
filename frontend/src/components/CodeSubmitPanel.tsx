@@ -2,6 +2,7 @@ import { useState } from "react";
 import Editor from "@monaco-editor/react";
 import { useAuth } from "@clerk/clerk-react";
 import type { Problem } from "../types";
+import PostSolveReflection from "./PostSolveReflection";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
@@ -31,6 +32,7 @@ interface SubmitResponse {
   overall: "pass" | "fail";
   results: TestResult[];
   streak: { current_streak: number; longest_streak: number } | null;
+  grimoire: { pattern: string; isNew: boolean } | null;
 }
 
 interface CodeSubmitPanelProps {
@@ -132,6 +134,12 @@ function CodeSubmitPanel({ problem }: CodeSubmitPanelProps) {
               Streak: {result.streak.current_streak} day
               {result.streak.current_streak === 1 ? "" : "s"}
             </p>
+          )}
+          {result.grimoire && (
+            <PostSolveReflection
+              pattern={result.grimoire.pattern}
+              isNewGrimoireEntry={result.grimoire.isNew}
+            />
           )}
         </div>
       )}

@@ -35,3 +35,12 @@ CREATE TABLE IF NOT EXISTS problems (
   starter_code JSONB,
   test_cases JSONB
 );
+
+CREATE TABLE IF NOT EXISTS grimoire (
+  id SERIAL PRIMARY KEY,
+  clerk_user_id TEXT NOT NULL REFERENCES users(clerk_user_id),
+  pattern TEXT NOT NULL,
+  problem_id TEXT NOT NULL,
+  unlocked_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (clerk_user_id, pattern)
+);
