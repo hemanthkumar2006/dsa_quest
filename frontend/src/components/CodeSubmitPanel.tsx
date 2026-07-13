@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Editor from "@monaco-editor/react";
+import { useAuth } from "@clerk/clerk-react";
 import type { Problem } from "../types";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
@@ -29,6 +30,7 @@ interface TestResult {
 interface SubmitResponse {
   overall: "pass" | "fail";
   results: TestResult[];
+  streak: { current_streak: number; longest_streak: number } | null;
 }
 
 interface CodeSubmitPanelProps {
@@ -36,6 +38,7 @@ interface CodeSubmitPanelProps {
 }
 
 function CodeSubmitPanel({ problem }: CodeSubmitPanelProps) {
+  const { getToken } = useAuth();
   const starterFor = (lang: string) =>
     problem.starter_code?.[lang] ?? DEFAULT_STARTER_CODE[lang];
 
@@ -64,9 +67,13 @@ function CodeSubmitPanel({ problem }: CodeSubmitPanelProps) {
     setResult(null);
     setError(null);
     try {
+      const token = await getToken();
       const res = await fetch(`${API_URL}/api/submit`, {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          ...(token ? { authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ problemId: problem.id, language, code }),
       });
       const data = await res.json();
@@ -120,6 +127,12 @@ function CodeSubmitPanel({ problem }: CodeSubmitPanelProps) {
               </li>
             ))}
           </ol>
+          {result.streak && (
+            <p data-testid="streak-update">
+              Streak: {result.streak.current_streak} day
+              {result.streak.current_streak === 1 ? "" : "s"}
+            </p>
+          )}
         </div>
       )}
     </div>

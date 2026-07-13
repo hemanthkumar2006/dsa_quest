@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 import regions from "../data/regions.json";
 import type { Region } from "../types";
+import StreakBadge from "../components/StreakBadge";
 
 function RegionListPage() {
   const list = regions as Region[];
@@ -8,6 +10,13 @@ function RegionListPage() {
   return (
     <main>
       <h1>DSA Quest — World Map</h1>
+      <SignedOut>
+        <SignInButton />
+      </SignedOut>
+      <SignedIn>
+        <UserButton />
+        <StreakBadge />
+      </SignedIn>
       <ul>
         {list.map((region) => (
           <li key={region.id}>

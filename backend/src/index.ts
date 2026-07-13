@@ -1,15 +1,18 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import { clerkMiddleware, getAuth } from "@clerk/express";
 import { pool } from "./db";
 import { runOnPiston } from "./piston";
 import { testCasesByProblemId, PISTON_LANGUAGE_VERSIONS } from "./testCases";
+import { recordSolve, getStreak } from "./streak";
 
 const app = express();
 const port = process.env.PORT ? Number(process.env.PORT) : 4000;
 
 app.use(cors());
 app.use(express.json());
+app.use(clerkMiddleware());
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
@@ -67,10 +70,27 @@ app.post("/api/submit", async (req, res) => {
     );
 
     const allPassed = results.every((r) => r.passed);
-    res.json({ overall: allPassed ? "pass" : "fail", results });
+
+    const { userId } = getAuth(req);
+    let streak: Awaited<ReturnType<typeof recordSolve>> | null = null;
+    if (allPassed && userId) {
+      streak = await recordSolve(userId, problemId);
+    }
+
+    res.json({ overall: allPassed ? "pass" : "fail", results, streak });
   } catch (err) {
     res.status(502).json({ error: (err as Error).message });
   }
+});
+
+app.get("/api/streak", async (req, res) => {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+  const streak = await getStreak(userId);
+  res.json(streak);
 });
 
 app.listen(port, () => {
