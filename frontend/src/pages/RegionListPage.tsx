@@ -18,6 +18,8 @@ function RegionListPage() {
         <StreakBadge />
         <p>
           <Link to="/grimoire">Pattern Grimoire</Link>
+          {" · "}
+          <Link to="/review">Review</Link>
         </p>
       </SignedIn>
       <ul>

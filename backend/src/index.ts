@@ -9,6 +9,7 @@ import { recordSolve, getStreak } from "./streak";
 import { getProblemsByRegion, getProblemById, redactHints } from "./problems";
 import { recordGrimoireEntry, getGrimoire } from "./grimoire";
 import { getHintsRevealedCount, revealNextHint } from "./hints";
+import { scheduleAfterSolve, getDueReviews } from "./srs";
 
 const app = express();
 const port = process.env.PORT ? Number(process.env.PORT) : 4000;
@@ -124,6 +125,7 @@ app.post("/api/submit", async (req, res) => {
       streak = await recordSolve(userId, problemId);
       const { isNew } = await recordGrimoireEntry(userId, problem.primary_pattern, problemId);
       grimoire = { pattern: problem.primary_pattern, isNew };
+      await scheduleAfterSolve(userId, problemId, problem.srs_interval_days);
     }
 
     res.json({ overall: allPassed ? "pass" : "fail", results, streak, grimoire });
@@ -150,6 +152,16 @@ app.get("/api/grimoire", async (req, res) => {
   }
   const entries = await getGrimoire(userId);
   res.json(entries);
+});
+
+app.get("/api/review", async (req, res) => {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+  const due = await getDueReviews(userId);
+  res.json(due);
 });
 
 app.listen(port, () => {

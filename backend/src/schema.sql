@@ -54,3 +54,12 @@ CREATE TABLE IF NOT EXISTS hint_reveals (
   hints_revealed INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (clerk_user_id, problem_id)
 );
+
+CREATE TABLE IF NOT EXISTS srs_schedule (
+  clerk_user_id TEXT NOT NULL REFERENCES users(clerk_user_id),
+  problem_id TEXT NOT NULL,
+  interval_index INTEGER NOT NULL DEFAULT 0,
+  next_review_date DATE NOT NULL,
+  last_reviewed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (clerk_user_id, problem_id)
+);

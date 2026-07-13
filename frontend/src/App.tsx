@@ -3,6 +3,7 @@ import RegionListPage from './pages/RegionListPage'
 import LevelListPage from './pages/LevelListPage'
 import ProblemDetailPage from './pages/ProblemDetailPage'
 import GrimoirePage from './pages/GrimoirePage'
+import ReviewPage from './pages/ReviewPage'
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         element={<ProblemDetailPage />}
       />
       <Route path="/grimoire" element={<GrimoirePage />} />
+      <Route path="/review" element={<ReviewPage />} />
     </Routes>
   )
 }
