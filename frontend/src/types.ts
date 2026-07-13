@@ -8,7 +8,7 @@ export interface Region {
 
 export interface Hint {
   cost: number;
-  text: string;
+  text: string | null;
 }
 
 export interface Problem {

@@ -6,8 +6,9 @@ import { pool } from "./db";
 import { runOnPiston } from "./piston";
 import { PISTON_LANGUAGE_VERSIONS } from "./languages";
 import { recordSolve, getStreak } from "./streak";
-import { getProblemsByRegion, getProblemById } from "./problems";
+import { getProblemsByRegion, getProblemById, redactHints } from "./problems";
 import { recordGrimoireEntry, getGrimoire } from "./grimoire";
+import { getHintsRevealedCount, revealNextHint } from "./hints";
 
 const app = express();
 const port = process.env.PORT ? Number(process.env.PORT) : 4000;
@@ -35,8 +36,15 @@ app.get("/api/problems", async (req, res) => {
     res.status(400).json({ error: "region query param is required" });
     return;
   }
+  const { userId } = getAuth(req);
   const problems = await getProblemsByRegion(region);
-  res.json(problems);
+  const redacted = await Promise.all(
+    problems.map(async (p) => {
+      const revealed = userId ? await getHintsRevealedCount(userId, p.id) : 0;
+      return redactHints(p, revealed);
+    })
+  );
+  res.json(redacted);
 });
 
 app.get("/api/problems/:id", async (req, res) => {
@@ -45,7 +53,23 @@ app.get("/api/problems/:id", async (req, res) => {
     res.status(404).json({ error: `Problem ${req.params.id} not found` });
     return;
   }
-  res.json(problem);
+  const { userId } = getAuth(req);
+  const revealed = userId ? await getHintsRevealedCount(userId, problem.id) : 0;
+  res.json(redactHints(problem, revealed));
+});
+
+app.post("/api/problems/:id/hints/reveal", async (req, res) => {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+  const result = await revealNextHint(userId, req.params.id);
+  if (!result.ok) {
+    res.status(400).json({ error: result.error });
+    return;
+  }
+  res.json(result);
 });
 
 app.post("/api/submit", async (req, res) => {

@@ -3,8 +3,11 @@ CREATE TABLE IF NOT EXISTS users (
   current_streak INTEGER NOT NULL DEFAULT 0,
   longest_streak INTEGER NOT NULL DEFAULT 0,
   last_solved_date DATE,
+  currency INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS currency INTEGER NOT NULL DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS solves (
   id SERIAL PRIMARY KEY,
@@ -43,4 +46,11 @@ CREATE TABLE IF NOT EXISTS grimoire (
   problem_id TEXT NOT NULL,
   unlocked_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (clerk_user_id, pattern)
+);
+
+CREATE TABLE IF NOT EXISTS hint_reveals (
+  clerk_user_id TEXT NOT NULL REFERENCES users(clerk_user_id),
+  problem_id TEXT NOT NULL,
+  hints_revealed INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (clerk_user_id, problem_id)
 );

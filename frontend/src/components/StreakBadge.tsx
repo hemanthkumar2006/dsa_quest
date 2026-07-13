@@ -7,6 +7,7 @@ interface StreakState {
   current_streak: number;
   longest_streak: number;
   last_solved_date: string | null;
+  currency: number;
 }
 
 function StreakBadge() {
@@ -35,7 +36,7 @@ function StreakBadge() {
   return (
     <p data-testid="streak-badge">
       Streak: {streak.current_streak} day{streak.current_streak === 1 ? "" : "s"} (longest:{" "}
-      {streak.longest_streak})
+      {streak.longest_streak}) · Currency: {streak.currency}
     </p>
   );
 }

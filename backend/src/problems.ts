@@ -13,7 +13,7 @@ export interface DbProblem {
   is_boss: boolean;
   companies_tags: string[];
   statement: string;
-  hints: { cost: number; text: string }[];
+  hints: { cost: number; text: string | null }[];
   srs_interval_days: number[];
   estimated_time_minutes: number;
   gradable: boolean;
@@ -37,4 +37,21 @@ export async function getProblemById(id: string): Promise<DbProblem | null> {
     [id]
   );
   return result.rows[0] ?? null;
+}
+
+/**
+ * Hints are paid, progressive reveals — strip text for hints beyond what
+ * this user has already unlocked so the API response doesn't leak them for free.
+ */
+export function redactHints<T extends DbProblem>(
+  problem: T,
+  hintsRevealed: number
+): T {
+  return {
+    ...problem,
+    hints: problem.hints.map((hint, i) => ({
+      cost: hint.cost,
+      text: i < hintsRevealed ? hint.text : null,
+    })),
+  } as T;
 }
