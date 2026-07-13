@@ -4,8 +4,9 @@ import cors from "cors";
 import { clerkMiddleware, getAuth } from "@clerk/express";
 import { pool } from "./db";
 import { runOnPiston } from "./piston";
-import { testCasesByProblemId, PISTON_LANGUAGE_VERSIONS } from "./testCases";
+import { PISTON_LANGUAGE_VERSIONS } from "./languages";
 import { recordSolve, getStreak } from "./streak";
+import { getProblemsByRegion, getProblemById } from "./problems";
 
 const app = express();
 const port = process.env.PORT ? Number(process.env.PORT) : 4000;
@@ -27,6 +28,25 @@ app.get("/health/db", async (_req, res) => {
   }
 });
 
+app.get("/api/problems", async (req, res) => {
+  const region = req.query.region;
+  if (typeof region !== "string") {
+    res.status(400).json({ error: "region query param is required" });
+    return;
+  }
+  const problems = await getProblemsByRegion(region);
+  res.json(problems);
+});
+
+app.get("/api/problems/:id", async (req, res) => {
+  const problem = await getProblemById(req.params.id);
+  if (!problem) {
+    res.status(404).json({ error: `Problem ${req.params.id} not found` });
+    return;
+  }
+  res.json(problem);
+});
+
 app.post("/api/submit", async (req, res) => {
   const { problemId, language, code } = req.body ?? {};
 
@@ -41,7 +61,8 @@ app.post("/api/submit", async (req, res) => {
     return;
   }
 
-  const testCases = testCasesByProblemId[problemId];
+  const problem = await getProblemById(problemId);
+  const testCases = problem?.test_cases;
   if (!testCases) {
     res.status(404).json({ error: `No test cases for problem ${problemId}` });
     return;

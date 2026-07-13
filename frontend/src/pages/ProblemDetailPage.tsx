@@ -1,14 +1,32 @@
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import problems from "../data/problems.json";
 import type { Problem } from "../types";
 import CodeSubmitPanel from "../components/CodeSubmitPanel";
+
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 
 function ProblemDetailPage() {
   const { regionId, problemId } = useParams<{
     regionId: string;
     problemId: string;
   }>();
-  const problem = (problems as Problem[]).find((p) => p.id === problemId);
+  const [problem, setProblem] = useState<Problem | null | undefined>(undefined);
+
+  useEffect(() => {
+    if (!problemId) return;
+    setProblem(undefined);
+    fetch(`${API_URL}/api/problems/${encodeURIComponent(problemId)}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setProblem(data));
+  }, [problemId]);
+
+  if (problem === undefined) {
+    return (
+      <main>
+        <p>Loading...</p>
+      </main>
+    );
+  }
 
   if (!problem) {
     return (
