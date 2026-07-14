@@ -5,16 +5,19 @@ import cors from "cors";
 import { clerkMiddleware, getAuth } from "@clerk/express";
 import { pool } from "./db";
 import { attachSocketServer } from "./socket";
-import { runOnPiston } from "./piston";
 import { PISTON_LANGUAGE_VERSIONS } from "./languages";
+import { gradeSubmission } from "./grading";
 import { recordSolve, getStreak } from "./streak";
 import { getProblemsByRegion, getProblemById, redactHints } from "./problems";
 import { recordGrimoireEntry, getGrimoire } from "./grimoire";
 import { getHintsRevealedCount, revealNextHint } from "./hints";
 import { scheduleAfterSolve, getDueReviews } from "./srs";
+import { getDuel, tryDeclareWinner } from "./duel";
 
 const app = express();
 const port = process.env.PORT ? Number(process.env.PORT) : 4000;
+const httpServer = createServer(app);
+const io = attachSocketServer(httpServer);
 
 app.use(cors());
 app.use(express.json());
@@ -76,7 +79,7 @@ app.post("/api/problems/:id/hints/reveal", async (req, res) => {
 });
 
 app.post("/api/submit", async (req, res) => {
-  const { problemId, language, code } = req.body ?? {};
+  const { problemId, language, code, duelId, socketId } = req.body ?? {};
 
   if (!problemId || !language || !code) {
     res.status(400).json({ error: "problemId, language, and code are required" });
@@ -97,28 +100,7 @@ app.post("/api/submit", async (req, res) => {
   }
 
   try {
-    const results = await Promise.all(
-      testCases.map(async (tc) => {
-        const result = await runOnPiston(
-          pistonLanguage.language,
-          pistonLanguage.version,
-          code,
-          tc.input
-        );
-        const actual = (result.run.stdout ?? "").trim();
-        const expected = tc.expected_output.trim();
-        const compileFailed = !!result.compile && result.compile.code !== 0;
-        return {
-          passed: !compileFailed && result.run.code === 0 && actual === expected,
-          status: compileFailed ? "Compile Error" : result.run.code === 0 ? "Ran" : "Runtime Error",
-          stdout: result.run.stdout,
-          stderr: result.run.stderr,
-          compile_output: result.compile?.stderr ?? null,
-        };
-      })
-    );
-
-    const allPassed = results.every((r) => r.passed);
+    const { results, allPassed } = await gradeSubmission(pistonLanguage, code, testCases);
 
     const { userId } = getAuth(req);
     let streak: Awaited<ReturnType<typeof recordSolve>> | null = null;
@@ -128,6 +110,19 @@ app.post("/api/submit", async (req, res) => {
       const { isNew } = await recordGrimoireEntry(userId, problem.primary_pattern, problemId);
       grimoire = { pattern: problem.primary_pattern, isNew };
       await scheduleAfterSolve(userId, problemId, problem.srs_interval_days);
+    }
+
+    if (allPassed && duelId && socketId) {
+      const duel = await getDuel(duelId);
+      if (duel && duel.problemId === problemId && !duel.winner) {
+        const won = await tryDeclareWinner(duelId, socketId);
+        if (won) {
+          io.to(duel.player1).to(duel.player2).emit("duel:result", {
+            duelId,
+            winner: socketId,
+          });
+        }
+      }
     }
 
     res.json({ overall: allPassed ? "pass" : "fail", results, streak, grimoire });
@@ -165,9 +160,6 @@ app.get("/api/review", async (req, res) => {
   const due = await getDueReviews(userId);
   res.json(due);
 });
-
-const httpServer = createServer(app);
-attachSocketServer(httpServer);
 
 httpServer.listen(port, () => {
   console.log(`Backend listening on http://localhost:${port}`);

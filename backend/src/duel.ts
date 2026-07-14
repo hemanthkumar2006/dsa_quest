@@ -47,3 +47,36 @@ export async function joinQueue(socketId: string): Promise<DuelMatch | null> {
 export async function leaveQueue(socketId: string): Promise<void> {
   await redis.lrem(QUEUE_KEY, 0, socketId);
 }
+
+export interface DuelState {
+  player1: string;
+  player2: string;
+  problemId: string;
+  status: string;
+  winner: string | null;
+}
+
+export async function getDuel(duelId: string): Promise<DuelState | null> {
+  const data = await redis.hgetall(`duel:${duelId}`);
+  if (!data.player1) return null;
+  return {
+    player1: data.player1,
+    player2: data.player2,
+    problemId: data.problemId,
+    status: data.status,
+    winner: data.winner ?? null,
+  };
+}
+
+/**
+ * Atomically claims the win for this duel. HSETNX only sets the field if it
+ * doesn't already exist, so concurrent winning submissions from both players
+ * can't both succeed — Redis executes each command sequentially.
+ */
+export async function tryDeclareWinner(
+  duelId: string,
+  socketId: string
+): Promise<boolean> {
+  const result = await redis.hsetnx(`duel:${duelId}`, "winner", socketId);
+  return result === 1;
+}
