@@ -5,6 +5,7 @@ import ProblemDetailPage from './pages/ProblemDetailPage'
 import GrimoirePage from './pages/GrimoirePage'
 import ReviewPage from './pages/ReviewPage'
 import SocketTestPage from './pages/SocketTestPage'
+import DuelPage from './pages/DuelPage'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
       <Route path="/grimoire" element={<GrimoirePage />} />
       <Route path="/review" element={<ReviewPage />} />
       <Route path="/socket-test" element={<SocketTestPage />} />
+      <Route path="/duel" element={<DuelPage />} />
     </Routes>
   )
 }

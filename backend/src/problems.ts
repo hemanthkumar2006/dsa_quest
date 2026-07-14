@@ -39,6 +39,13 @@ export async function getProblemById(id: string): Promise<DbProblem | null> {
   return result.rows[0] ?? null;
 }
 
+export async function getRandomGradableProblemId(): Promise<string | null> {
+  const result = await pool.query<{ id: string }>(
+    `SELECT id FROM problems WHERE gradable = true ORDER BY random() LIMIT 1`
+  );
+  return result.rows[0]?.id ?? null;
+}
+
 /**
  * Hints are paid, progressive reveals — strip text for hints beyond what
  * this user has already unlocked so the API response doesn't leak them for free.

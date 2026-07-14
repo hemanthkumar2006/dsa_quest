@@ -10,6 +10,9 @@ function RegionListPage() {
   return (
     <main>
       <h1>DSA Quest — World Map</h1>
+      <p>
+        <Link to="/duel">Duel</Link>
+      </p>
       <SignedOut>
         <SignInButton />
       </SignedOut>

@@ -1,5 +1,6 @@
 import type { Server as HttpServer } from "http";
 import { Server } from "socket.io";
+import { joinQueue, leaveQueue } from "./duel";
 
 export function attachSocketServer(httpServer: HttpServer) {
   const io = new Server(httpServer, {
@@ -13,8 +14,21 @@ export function attachSocketServer(httpServer: HttpServer) {
       io.emit("pong", { from: socket.id, message });
     });
 
-    socket.on("disconnect", () => {
+    socket.on("duel:join_queue", async () => {
+      const match = await joinQueue(socket.id);
+      if (!match) {
+        socket.emit("duel:waiting");
+        return;
+      }
+      io.to(match.player1).to(match.player2).emit("duel:matched", {
+        duelId: match.duelId,
+        problemId: match.problemId,
+      });
+    });
+
+    socket.on("disconnect", async () => {
       console.log(`Socket disconnected: ${socket.id}`);
+      await leaveQueue(socket.id);
     });
   });
 
