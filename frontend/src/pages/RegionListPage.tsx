@@ -12,6 +12,8 @@ function RegionListPage() {
       <h1>DSA Quest — World Map</h1>
       <p>
         <Link to="/duel">Duel</Link>
+        {" · "}
+        <Link to="/leaderboard">Leaderboard</Link>
       </p>
       <SignedOut>
         <SignInButton />
@@ -23,6 +25,8 @@ function RegionListPage() {
           <Link to="/grimoire">Pattern Grimoire</Link>
           {" · "}
           <Link to="/review">Review</Link>
+          {" · "}
+          <Link to="/guilds">Guilds</Link>
         </p>
       </SignedIn>
       <ul>

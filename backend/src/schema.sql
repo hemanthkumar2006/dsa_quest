@@ -4,10 +4,12 @@ CREATE TABLE IF NOT EXISTS users (
   longest_streak INTEGER NOT NULL DEFAULT 0,
   last_solved_date DATE,
   currency INTEGER NOT NULL DEFAULT 0,
+  duel_wins INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS currency INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS duel_wins INTEGER NOT NULL DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS solves (
   id SERIAL PRIMARY KEY,
@@ -62,4 +64,18 @@ CREATE TABLE IF NOT EXISTS srs_schedule (
   next_review_date DATE NOT NULL,
   last_reviewed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (clerk_user_id, problem_id)
+);
+
+CREATE TABLE IF NOT EXISTS guilds (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  created_by TEXT NOT NULL REFERENCES users(clerk_user_id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS guild_members (
+  guild_id INTEGER NOT NULL REFERENCES guilds(id),
+  clerk_user_id TEXT NOT NULL REFERENCES users(clerk_user_id) UNIQUE,
+  joined_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (guild_id, clerk_user_id)
 );

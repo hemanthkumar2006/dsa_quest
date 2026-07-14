@@ -41,6 +41,18 @@ export async function recordSolve(
   return result.rows[0];
 }
 
+/**
+ * Called only from the duel-win branch of /api/submit, which always runs
+ * after recordSolve() for the same request — so the user row is guaranteed
+ * to already exist here.
+ */
+export async function incrementDuelWins(clerkUserId: string): Promise<void> {
+  await pool.query(
+    `UPDATE users SET duel_wins = duel_wins + 1 WHERE clerk_user_id = $1`,
+    [clerkUserId]
+  );
+}
+
 export async function getStreak(clerkUserId: string): Promise<StreakState> {
   const result = await pool.query<StreakState>(
     `SELECT current_streak, longest_streak, last_solved_date, currency

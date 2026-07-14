@@ -7,12 +7,13 @@ import { pool } from "./db";
 import { attachSocketServer } from "./socket";
 import { PISTON_LANGUAGE_VERSIONS } from "./languages";
 import { gradeSubmission } from "./grading";
-import { recordSolve, getStreak } from "./streak";
+import { recordSolve, getStreak, incrementDuelWins } from "./streak";
 import { getProblemsByRegion, getProblemById, redactHints } from "./problems";
 import { recordGrimoireEntry, getGrimoire } from "./grimoire";
 import { getHintsRevealedCount, revealNextHint } from "./hints";
 import { scheduleAfterSolve, getDueReviews } from "./srs";
 import { getDuel, tryDeclareWinner } from "./duel";
+import { createGuild, joinGuild, listGuilds, getMyGuild, getLeaderboard } from "./guilds";
 
 const app = express();
 const port = process.env.PORT ? Number(process.env.PORT) : 4000;
@@ -117,6 +118,7 @@ app.post("/api/submit", async (req, res) => {
       if (duel && duel.problemId === problemId && !duel.winner) {
         const won = await tryDeclareWinner(duelId, socketId);
         if (won) {
+          if (userId) await incrementDuelWins(userId);
           io.to(duel.player1).to(duel.player2).emit("duel:result", {
             duelId,
             winner: socketId,
@@ -159,6 +161,55 @@ app.get("/api/review", async (req, res) => {
   }
   const due = await getDueReviews(userId);
   res.json(due);
+});
+
+app.get("/api/guilds", async (_req, res) => {
+  const guilds = await listGuilds();
+  res.json(guilds);
+});
+
+app.post("/api/guilds", async (req, res) => {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+  const { name } = req.body ?? {};
+  if (!name || typeof name !== "string") {
+    res.status(400).json({ error: "name is required" });
+    return;
+  }
+  try {
+    const guild = await createGuild(name, userId);
+    res.json(guild);
+  } catch (err) {
+    res.status(400).json({ error: "A guild with that name already exists" });
+  }
+});
+
+app.post("/api/guilds/:id/join", async (req, res) => {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+  await joinGuild(Number(req.params.id), userId);
+  res.json({ ok: true });
+});
+
+app.get("/api/guilds/me", async (req, res) => {
+  const { userId } = getAuth(req);
+  if (!userId) {
+    res.status(401).json({ error: "Authentication required" });
+    return;
+  }
+  const myGuild = await getMyGuild(userId);
+  res.json(myGuild);
+});
+
+app.get("/api/leaderboard", async (_req, res) => {
+  const leaderboard = await getLeaderboard();
+  res.json(leaderboard);
 });
 
 httpServer.listen(port, () => {
