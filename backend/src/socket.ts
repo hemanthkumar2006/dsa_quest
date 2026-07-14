@@ -1,6 +1,6 @@
 import type { Server as HttpServer } from "http";
 import { Server } from "socket.io";
-import { joinQueue, leaveQueue } from "./duel";
+import { joinQueue, leaveQueue, getDuel, getOpponentSocketId } from "./duel";
 
 export function attachSocketServer(httpServer: HttpServer) {
   const io = new Server(httpServer, {
@@ -24,6 +24,18 @@ export function attachSocketServer(httpServer: HttpServer) {
         duelId: match.duelId,
         problemId: match.problemId,
       });
+    });
+
+    socket.on("duel:typing", async ({ duelId }: { duelId: string }) => {
+      const duel = await getDuel(duelId);
+      const opponent = duel && getOpponentSocketId(duel, socket.id);
+      if (opponent) io.to(opponent).emit("duel:opponent_typing");
+    });
+
+    socket.on("duel:submitted", async ({ duelId }: { duelId: string }) => {
+      const duel = await getDuel(duelId);
+      const opponent = duel && getOpponentSocketId(duel, socket.id);
+      if (opponent) io.to(opponent).emit("duel:opponent_submitted");
     });
 
     socket.on("disconnect", async () => {

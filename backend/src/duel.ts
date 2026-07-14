@@ -80,3 +80,9 @@ export async function tryDeclareWinner(
   const result = await redis.hsetnx(`duel:${duelId}`, "winner", socketId);
   return result === 1;
 }
+
+export function getOpponentSocketId(duel: DuelState, socketId: string): string | null {
+  if (duel.player1 === socketId) return duel.player2;
+  if (duel.player2 === socketId) return duel.player1;
+  return null;
+}

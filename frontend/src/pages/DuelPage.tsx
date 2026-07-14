@@ -33,6 +33,8 @@ const DEFAULT_STARTER_CODE: Record<string, string> = {
   java: "class Solution {\n    void solve() {\n\n    }\n}\n",
 };
 
+type OpponentStatus = "idle" | "typing" | "submitted";
+
 function DuelPage() {
   const { getToken } = useAuth();
   const socketRef = useRef<Socket | null>(null);
@@ -40,6 +42,9 @@ function DuelPage() {
   const [match, setMatch] = useState<MatchedEvent | null>(null);
   const [problem, setProblem] = useState<Problem | null>(null);
   const [result, setResult] = useState<DuelResultEvent | null>(null);
+  const [opponentStatus, setOpponentStatus] = useState<OpponentStatus>("idle");
+  const typingClearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTypingEmit = useRef(0);
 
   const [language, setLanguage] = useState<string>("javascript");
   const [code, setCode] = useState<string>(DEFAULT_STARTER_CODE.javascript);
@@ -49,6 +54,7 @@ function DuelPage() {
   useEffect(() => {
     return () => {
       socketRef.current?.disconnect();
+      if (typingClearTimer.current) clearTimeout(typingClearTimer.current);
     };
   }, []);
 
@@ -82,6 +88,25 @@ function DuelPage() {
       setResult(event);
       setStatus("finished");
     });
+    socket.on("duel:opponent_typing", () => {
+      setOpponentStatus("typing");
+      if (typingClearTimer.current) clearTimeout(typingClearTimer.current);
+      typingClearTimer.current = setTimeout(() => setOpponentStatus("idle"), 2000);
+    });
+    socket.on("duel:opponent_submitted", () => {
+      if (typingClearTimer.current) clearTimeout(typingClearTimer.current);
+      setOpponentStatus("submitted");
+    });
+  };
+
+  const handleCodeChange = (value: string | undefined) => {
+    setCode(value ?? "");
+    if (!match || !socketRef.current) return;
+    const now = Date.now();
+    if (now - lastTypingEmit.current > 500) {
+      lastTypingEmit.current = now;
+      socketRef.current.emit("duel:typing", { duelId: match.duelId });
+    }
   };
 
   const handleLanguageChange = (newLanguage: string) => {
@@ -93,6 +118,7 @@ function DuelPage() {
     if (!match || !socketRef.current) return;
     setSubmitting(true);
     setLastOutcome(null);
+    socketRef.current.emit("duel:submitted", { duelId: match.duelId });
     try {
       const token = await getToken();
       const res = await fetch(`${API_URL}/api/submit`, {
@@ -159,9 +185,14 @@ function DuelPage() {
             height="300px"
             language={language}
             value={code}
-            onChange={(value) => setCode(value ?? "")}
+            onChange={handleCodeChange}
             options={{ readOnly: status === "finished" }}
           />
+          {status === "matched" && opponentStatus !== "idle" && (
+            <p data-testid="opponent-status">
+              {opponentStatus === "typing" ? "Opponent is typing..." : "Opponent submitted their solution!"}
+            </p>
+          )}
           <button
             type="button"
             onClick={handleSubmit}
