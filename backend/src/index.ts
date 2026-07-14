@@ -1,8 +1,10 @@
 import "dotenv/config";
+import { createServer } from "http";
 import express from "express";
 import cors from "cors";
 import { clerkMiddleware, getAuth } from "@clerk/express";
 import { pool } from "./db";
+import { attachSocketServer } from "./socket";
 import { runOnPiston } from "./piston";
 import { PISTON_LANGUAGE_VERSIONS } from "./languages";
 import { recordSolve, getStreak } from "./streak";
@@ -164,6 +166,9 @@ app.get("/api/review", async (req, res) => {
   res.json(due);
 });
 
-app.listen(port, () => {
+const httpServer = createServer(app);
+attachSocketServer(httpServer);
+
+httpServer.listen(port, () => {
   console.log(`Backend listening on http://localhost:${port}`);
 });
