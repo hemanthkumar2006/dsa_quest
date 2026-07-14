@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "migrate": "tsx src/migrate.ts",
-    "seed": "tsx src/seed.ts",
+    "seed": "tsx src/import-problems.ts",
+    "import": "tsx src/import-problems.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
